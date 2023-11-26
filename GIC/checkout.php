@@ -234,6 +234,7 @@ if (true) {
                     }
                 });
             }
+
             function removeErrors() {
                 setInterval(function () {
                     if (document.getElementById('alert') != null)

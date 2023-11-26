@@ -414,37 +414,38 @@ function setItems()
                     voucherCheck();
                 }
             });
+
+            var inputElement12 = document.getElementById('cash');
+            inputElement12.addEventListener('input', function () {
+
+                var inputElement3 = document.getElementById('cashT');
+                var change = document.getElementById('change');
+                var changeT = document.getElementById('changeT');
+                var amount = document.getElementById('gt');
+                var submit = document.getElementById('submit');
+                if (inputElement12.value.length === 0) {
+                    change.value = "₱ 0.00";
+                    changeT.textContent = "₱ 0.00";
+                    inputElement3.textContent = "- ₱ 0.00";
+                    submit.disabled = true;
+                    return
+                }
+                // This function will be called when the input value changes
+                // var inputValue = inputElement.value;
+                // outputElement.textContent = 'Input value changed to: ' + inputValue;
+                change.value = "₱ " + (parseFloat(inputElement12.value) - parseFloat(amount.value.replace("₱", "").replace(/\s+/g, ''))).toFixed(2);
+                changeT.textContent = "₱ " + (parseFloat(inputElement12.value) - parseFloat(amount.value.replace("₱", "").replace(/\s+/g, ''))).toFixed(2);
+                inputElement3.textContent = "- ₱ " + (parseFloat(inputElement12.value)).toFixed(2);
+                if ((parseFloat(amount.value.replace("₱", "").replace(/\s+/g, '')) - parseFloat(inputElement12.value.replace("₱", "").replace(/\s+/g, ''))) > 0) {
+                    submit.disabled = true;
+                    changeT.textContent = "₱ 0.00";
+                    change.value = "- ₱ 0.00";
+                } else {
+                    submit.disabled = false;
+                }
+            });
         });
 
-        var inputElement12 = document.getElementById('cash');
-        inputElement12.addEventListener('input', function () {
-
-            var inputElement3 = document.getElementById('cashT');
-            var change = document.getElementById('change');
-            var changeT = document.getElementById('changeT');
-            var amount = document.getElementById('gt');
-            var submit = document.getElementById('submit');
-            if (inputElement12.value.length === 0) {
-                change.value = "₱ 0.00";
-                changeT.textContent = "₱ 0.00";
-                inputElement3.textContent = "- ₱ 0.00";
-                submit.disabled = true;
-                return
-            }
-            // This function will be called when the input value changes
-            // var inputValue = inputElement.value;
-            // outputElement.textContent = 'Input value changed to: ' + inputValue;
-            change.value = "₱ " + (parseFloat(inputElement12.value) - parseFloat(amount.value.replace("₱", "").replace(/\s+/g, ''))).toFixed(2);
-            changeT.textContent = "₱ " + (parseFloat(inputElement12.value) - parseFloat(amount.value.replace("₱", "").replace(/\s+/g, ''))).toFixed(2);
-            inputElement3.textContent = "- ₱ " + (parseFloat(inputElement12.value)).toFixed(2);
-            if ((parseFloat(amount.value.replace("₱", "").replace(/\s+/g, '')) - parseFloat(inputElement12.value.replace("₱", "").replace(/\s+/g, ''))) > 0) {
-                submit.disabled = true;
-                changeT.textContent = "₱ 0.00";
-                change.value = "- ₱ 0.00";
-            } else {
-                submit.disabled = false;
-            }
-        });
     </script>
     <?php
 }
