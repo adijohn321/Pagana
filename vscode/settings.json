@@ -1,0 +1,11 @@
+{
+    "liveServer.settings.useWebExt": true,
+    
+    "liveServer.settings.proxy": {
+        "enable": true,
+        "baseUri": "/src",
+        "proxyUri": "http://127.0.0.1/pagana"
+    },
+    
+    "liveServer.settings.CustomBrowser": "Chrome"
+}
