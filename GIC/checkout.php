@@ -283,3 +283,4 @@ if (true) {
     header("Location: ../index.php");
 }
 ?>
+http://localhost:8080/Pagana/room_booking.php?id=1&checkin=2023-10-11&checkout=2023-10-11
