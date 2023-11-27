@@ -640,7 +640,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
           <main class="main-content" style="    width: -webkit-fill-available;">
             <div class="container mt-4">
-              <form action="" method="post" enctype="multipart/form-data" style="display:block;margin-bottom:10px">
+              <form action="charge2.php?id=<?php echo $roomId?>" method="post" enctype="multipart/form-data" style="display:block;margin-bottom:10px">
 
 
                 <div class="row" hidden>
@@ -665,7 +665,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 
                 </div>
-
+            
+                <input type="text" name="rate" value="<?php echo $roomRate?>" >
                 <div class="row">
                   <div class="col-md-6">
 
