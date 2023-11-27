@@ -1,7 +1,7 @@
 <?php
 // session_start(); // Start the session
 
-require_once "vendor/autoload.php";
+require_once "vendor1/autoload.php";
 
 use Omnipay\Omnipay;
 

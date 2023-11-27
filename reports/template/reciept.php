@@ -35,7 +35,6 @@
 <body>
 
     <?php
-    session_start();
     
     include_once "../function/dashboard.php";
     if (isset($_SESSION['voucher'])) {

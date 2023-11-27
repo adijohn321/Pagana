@@ -90,11 +90,11 @@ function registerUser($fname, $mname, $lname, $email, $phone, $password, $confir
         mail($email, $subject, $message, $sender);
         $stmt->close();
         $conn->close();
-        return true; // Registration successful
+        return true;
     } else {
         $stmt->close();
         $conn->close();
-        return false; // Registration failed
+        return false;
     }
 
 }
