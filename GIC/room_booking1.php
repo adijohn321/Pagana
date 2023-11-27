@@ -21,27 +21,25 @@ if (isset($_POST['submit'])) {
     $address = $_POST['address'];
     $room = $_POST['room'];
     $rate = $_POST['rate'];
-    $rate = str_replace("₱ ","",$rate);
+    $rate = str_replace("₱ ", "", $rate);
     $checkin = $_POST['checkin'];
     $checkout = $_POST['checkout'];
     $am1 = $_POST['amenities1'];
-    $am2 =$_POST['amenities2'];
+    $am2 = $_POST['amenities2'];
     $ref_no = rand(999999999, 000000000);
     $status = "Reserved";
     date_default_timezone_set('Asia/Manila');
     $now = date("Y-m-d H:i:s");
-    
+
     $stmt = mysqli_query($conn, "INSERT INTO `reservation` (room_id, name, email, phone, address, checkin, checkout, amount_paid, total_rate, transaction_id, status, datecreated) VALUES('$room', '$name', '$email', '$phone', '$address', '$checkin', '$checkout', '$rate', '$rate', '$ref_no', '$status', '$now')");
     $reservationId = mysqli_insert_id($conn);
-    if(isset($am1)){
-    }
-    else if (isset($am1)){
+    if (isset($am1)) {
+    } else if (isset($am1)) {
         $stmt1 = mysqli_query($conn, "INSERT INTO `amenities_reservation` (reservation_id, name, checkin, checkout) VALUES('$reservationId', '$am1', '$checkin', '$checkout')");
     }
-    if($am2 == false){
-    }
-    else if ($am2 == true){
-    $stmt2 = mysqli_query($conn, "INSERT INTO `amenities_reservation` (reservation_id, name, checkin, checkout) VALUES('$reservationId', '$am2', '$checkin', '$checkout')");
+    if ($am2 == false) {
+    } else if ($am2 == true) {
+        $stmt2 = mysqli_query($conn, "INSERT INTO `amenities_reservation` (reservation_id, name, checkin, checkout) VALUES('$reservationId', '$am2', '$checkin', '$checkout')");
     }
     if ($stmt) {
         $logoImagePath = '../img/Pagana_logo.png';
@@ -123,7 +121,7 @@ if (isset($_POST['submit'])) {
         echo "Error: " . mysqli_error($conn);
     }
 }
- //else
+//else
 // {
 //     $stmt = $conn->prepare("SELECT * FROM room WHERE id = '$id'");
 //     $stmt->execute();
@@ -281,79 +279,69 @@ if (isset($_POST['submit'])) {
                                 </ul>
                                 <hr>
                                 <div id="amenities-container">
-                            <h1>Amenities</h1>
-                            <select id="am1" onchange="amenities1()" class="amenities-select">
-                                <option value="0">Select Amenities</option>
-                                <?php
-                                 $select = mysqli_query($conn, "SELECT * FROM `amenities`");
-                                 $select_arr = array(); 
-                                    if(mysqli_num_rows($select)>0){
-                                       while($fetch = mysqli_fetch_assoc($select)){
-                                          $select_arr[$fetch['name']]= $fetch;
-                                          $book = explode(',', $select_arr[$fetch['name']]['name']);
-                                          foreach($book as $booked){
-                                          }
-               
-                                       }
-                                    }else{
-                                        echo '<p class="empty" style="color: black; text-align: center;">No Available Amenities has been found!</p>';
-                                    }
-                                 $fetch_booked = mysqli_query($conn, "SELECT distinct name from `amenities` where name not in (SELECT name from `amenities_reservation` where '$checkin' BETWEEN date(checkin) and date(checkout) OR '$checkout' BETWEEN date(checkin) and date(checkout) OR (checkin <= '$checkout' AND checkout >= '$checkin')
-                                 OR (checkin <= '$checkin' AND checkout >= '$checkout')
-                                 OR (checkin >= '$checkin' AND checkout <= '$checkout'))");
-                                 if(mysqli_num_rows($fetch_booked)>0){
-                                 while($fetch = mysqli_fetch_assoc($fetch_booked)){
-                                    $am1 = $select_arr[$fetch['name']]['rate'] * $calc_days;
-                                    ?>
-                                    <option value="<?php echo $select_arr[$fetch['name']]['name']; ?>" data-rate="<?php echo $am1; ?>"><?php echo $select_arr[$fetch['name']]['name']; ?></option>
-                                <?php
-                                 }
-                                }
-                                else{
-                                    echo '<p class="empty" style="color: black; text-align: center;">No Available Amenities has been found!</p>';
-                            
-                                    }
-                                ?>
-                            </select>
-                            <select id="am2" onchange="amenities2()" class="amenities-select">
-                                <option value="0">Select Amenities</option>
-                                <?php
-                                 $select = mysqli_query($conn, "SELECT * FROM `amenities`");
-                                 $select_arr = array(); 
-                                    if(mysqli_num_rows($select)>0){
-                                       while($fetch = mysqli_fetch_assoc($select)){
-                                          $select_arr[$fetch['name']]= $fetch;
-                                          $book = explode(',', $select_arr[$fetch['name']]['name']);
-                                          foreach($book as $booked){
-                                          }
-               
-                                       }
-                                    }else{
-                                        echo '<p class="empty" style="color: black; text-align: center;">No Available Amenities has been found!</p>';
-                                    }
-                                 $fetch_booked = mysqli_query($conn, "SELECT distinct name from `amenities` where name not in (SELECT name from `amenities_reservation` where '$checkin' BETWEEN date(checkin) and date(checkout) OR '$checkout' BETWEEN date(checkin) and date(checkout) OR (checkin <= '$checkout' AND checkout >= '$checkin')
-                                 OR (checkin <= '$checkin' AND checkout >= '$checkout')
-                                 OR (checkin >= '$checkin' AND checkout <= '$checkout'))");
-                                 if(mysqli_num_rows($fetch_booked)>0){
-                                 while($fetch = mysqli_fetch_assoc($fetch_booked)){
-                                    $am2 = $select_arr[$fetch['name']]['rate'] * $calc_days;
+                                    <ul class="list-group mt-4">
+                                        <h4>Room Features</h4>
+                                        <!-- Predefined Amenities with Delete Button -->
 
-                                    ?>
-                                    <option value="<?php echo $select_arr[$fetch['name']]['name']; ?>" data-rate="<?php echo $am2; ?>"><?php echo $select_arr[$fetch['name']]['name']; ?></option>
-                                <?php
-                                 }
-                                }
-                                else{
-                                    echo '<p class="empty" style="color: black; text-align: center;">No Available Amenities has been found!</p>';
-                            
-                                    }
-                                ?>
-                            </select>
-                            <?php
-                                }
-                            ?>
-                        </div>
-                            
+                                        <?php
+
+                                        $i = 0;
+                                        $stmt->close();
+                                        $stmt = $conn->prepare("SELECT * FROM room_features WHERE room_id = '$id'");
+                                        $stmt->execute();
+                                        $result = $stmt->get_result();
+                                        while ($row = $result->fetch_assoc()) {
+                                            $name = $row["description"];
+                                            $amid = $row["id"];
+
+                                            ?>
+                                            <li class="list-group-item">
+                                                <i class="fas fa-check"></i>
+                                                <?php echo $name ?>
+                                            </li>
+                                            <?php
+                                            $i++;
+                                        }
+                                        if ($i == 0) {
+                                            echo "N/A";
+                                        }
+                                        ?>
+
+                                    </ul>
+                                    <ul class="list-group mt-4">
+                                        <h4>Room Amenities</h4>
+                                        <!-- Predefined Amenities with Delete Button -->
+
+                                        <?php
+
+                                        $i = 0;
+                                        $stmt->close();
+                                        $stmt = $conn->prepare("SELECT * FROM room_amenities WHERE room_id = '$id'");
+                                        $stmt->execute();
+                                        $result = $stmt->get_result();
+                                        while ($row = $result->fetch_assoc()) {
+                                            $name = $row["description"];
+                                            $amid = $row["id"];
+
+                                            ?>
+                                            <li class="list-group-item">
+                                                <i class="fas fa-check"></i>
+                                                <?php echo $name ?>
+                                            </li>
+                                            <?php
+                                            $i++;
+                                        }
+                                        if ($i == 0) {
+                                            echo "N/A";
+                                        }
+                                        ?>
+
+                                    </ul>
+                                    <?php
+                    }
+                    ?>
+                            </div>
+
                         </div>
                     </div>
                 </div>
@@ -371,13 +359,13 @@ if (isset($_POST['submit'])) {
                         <div class="form-group">
                             <label for="name">Name <span style="color: red;">*</span></label>
                             <input type="text" class="form-control" id="name" name="name" placeholder="Enter your name"
-                                required >
+                                required>
                         </div>
 
                         <div class="form-group">
                             <label for="address">Address <span style="color: red;">*</span></label>
-                            <textarea class="form-control" id="address"  name="address"
-                                placeholder="Enter your address" required></textarea>
+                            <textarea class="form-control" id="address" name="address" placeholder="Enter your address"
+                                required></textarea>
                         </div>
                         <div class="row">
                             <div class="col-md-8">
@@ -386,7 +374,7 @@ if (isset($_POST['submit'])) {
                                 <div class="form-group">
                                     <label for="email">Email <span style="color: red;">*</span></label>
                                     <input type="email" class="form-control" id="email" name="email"
-                                        placeholder="Enter your email" required >
+                                        placeholder="Enter your email" required>
                                 </div>
                             </div>
                             <div class="col-md-4">
@@ -394,7 +382,7 @@ if (isset($_POST['submit'])) {
                                 <div class="form-group">
                                     <label for="phone">Mobile Number <span style="color: red;">*</span></label>
                                     <input type="text" class="form-control" id="phone" name="phone"
-                                        placeholder="Enter your phone" required >
+                                        placeholder="Enter your phone" required>
                                 </div>
                             </div>
 
@@ -430,8 +418,8 @@ if (isset($_POST['submit'])) {
 
                         </div>
                         <div class="form-group">
-                            <label for="rate">Total Amount: </label><input type="text" id="rate"
-                                class="form-control" name="rate" value="<?php echo $newRate; ?>" readonly>
+                            <label for="rate">Total Amount: </label><input type="text" id="rate" class="form-control"
+                                name="rate" value="<?php echo $newRate; ?>" readonly>
                         </div>
 
                         <div class="row">
@@ -568,7 +556,7 @@ if (isset($_POST['submit'])) {
             var am1 = document.getElementById("am3");
             var text1 = am1.options[am1.selectedIndex].text;
             document.getElementById("amenities3").value = text1;
-            
+
         }
 
         var inputElement = document.getElementById('cash');

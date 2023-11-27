@@ -270,30 +270,30 @@ if (isset($_SESSION['user_id']) && $_SESSION['role'] === "Administrator") {
                                                     <!-- Predefined Amenities with Delete Button -->
 
                                                     <?php
-                                }
-                                $i = 0;
-                                $stmt->close();
-                                $stmt = $conn->prepare("SELECT * FROM room_features WHERE room_id = '$id'");
-                                $stmt->execute();
-                                $result = $stmt->get_result();
-                                while ($row = $result->fetch_assoc()) {
-                                    $name = $row["description"];
-                                    $amid = $row["id"];
+                                                    }
+                                                    $i = 0;
+                                                    $stmt->close();
+                                                    $stmt = $conn->prepare("SELECT * FROM room_features WHERE room_id = '$id'");
+                                                    $stmt->execute();
+                                                    $result = $stmt->get_result();
+                                                    while ($row = $result->fetch_assoc()) {
+                                                        $name = $row["description"];
+                                                        $amid = $row["id"];
 
-                                    ?>
-                                                    <li class="list-group-item">
-                                                        <i class="fas fa-check"></i>
-                                                        <?php echo $name ?>
-                                                        <i class="fas fa-trash-alt delete-amenity"
-                                                            onclick="setId(<?php echo $amid ?>,'Are you sure you want to delete this feature?','ft')"></i>
-                                                    </li>
-                                                    <?php
-                                                    $i++;
-                                }
-                                if ($i == 0) {
-                                    echo "N/A";
-                                }
-                                ?>
+                                                        ?>
+                                                                        <li class="list-group-item">
+                                                                            <i class="fas fa-check"></i>
+                                                                            <?php echo $name ?>
+                                                                            <i class="fas fa-trash-alt delete-amenity"
+                                                                                onclick="setId(<?php echo $amid ?>,'Are you sure you want to delete this feature?','ft')"></i>
+                                                                        </li>
+                                                                        <?php
+                                                                        $i++;
+                                                    }
+                                                    if ($i == 0) {
+                                                        echo "N/A";
+                                                    }
+                                                    ?>
 
                                             </ul>
                                             <div class="text-center mt-4">

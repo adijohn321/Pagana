@@ -66,6 +66,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'deleteAccount') {
             while ($row = $result->fetch_assoc()) {
                 $sn++;
                 $id = $row['transaction_id'];
+                $uid = $row['user_id'];
                 $reservationName = $row['name'];
                 $room_id = $row['room_id'];
                 $reservationEmail = $row['email'];
@@ -96,6 +97,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'deleteAccount') {
 
                 $newObject = (object) [
                     'id' => $id,
+                    'uid' => $uid,
                     'room_id' => $room_id,
                     'total_rate' => $total_rate,
                     'rate' => $rate,
@@ -131,7 +133,6 @@ if (isset($_POST['action']) && $_POST['action'] === 'deleteAccount') {
 
             setItems();
         } else {
-
             setItems();
         }
     }
@@ -160,8 +161,9 @@ function setItems()
                 </tr>
 
                 <?php
-
+                $uid = '';
                 foreach ($_SESSION['myArrayOfObjects'] as $index => $object) {
+                    $uid = $object->uid;
                     ?>
                     <tr>
                         <td style="width: 10%;">
@@ -201,14 +203,14 @@ function setItems()
             </tbody>
 
         </table>
-        <form action="" method="post" class="mb-5 mt-5 container">
+        <form action="../reports/reciept.php" method="post" class="mb-5 mt-5 container">
             <div class="row">
                 <div class="col-md-3">
                     <!-- Total -->
                     <div class="form-group">
                         <label for="gt">Total Amount Due </label>
                         <input type="text" class="form-control" id="gt" name="gt"
-                            value="<?php echo number_format($totalDuePayable, 2, '.', ',') ?>" readonly>
+                            value="<?php echo number_format($totalDuePayable, 2, '.', '') ?>" readonly>
                     </div>
                 </div>
                 <div class="col-md-3">
@@ -239,42 +241,58 @@ function setItems()
                     <div class="row">
                         <div class="col-md-12">
                             <h5 class="alert-heading">Client Information</h5>
-                            <table style="width: 100%;">
-                                <tbody>
-                                    <tr>
-                                        <td width="15%">
-                                            <label style="width: 50%;"><strong>Name:</strong> </label>
-                                        </td>
-                                        <td width="90%"> <label>
+                            <?php
 
-                                            </label></td>
-                                    </tr>
-                                    <tr>
-                                        <td width="15%">
-                                            <label style="width: 50%;"><strong>Address:</strong> </label>
-                                        </td>
-                                        <td width="90%"> <label>
+                            $conn = dbConnect();
+                            $stmt = $conn->prepare("SELECT * FROM users  where id = '$uid'");
+                            $stmt->execute();
+                            $result = $stmt->get_result();
 
-                                            </label></td>
-                                    </tr>
-                                    <tr>
-                                        <td width="15%">
-                                            <label style="width: 50%;"><strong>Phone:</strong> </label>
-                                        </td>
-                                        <td width="90%"> <label>
+                            $sn = 0;
+                            if ($row = $result->fetch_assoc()) {
+                                $fullname = $row["fname"] . ' ' . $row["mname"] . ' ' . $row["lname"];
+                                $email = $row['email'];
+                                $number = $row['phone'];
+                                ?>
+                                <table style="width: 100%;">
+                                    <tbody>
+                                        <tr>
+                                            <td width="15%">
+                                                <label style="width: 50%;"><strong>Name:</strong> </label>
+                                            </td>
+                                            <td width="90%"> <label>
+                                                <?php echo $fullname?>
+                                                </label></td>
+                                        </tr>
+                                        <tr>
+                                            <td width="15%">
+                                                <label style="width: 50%;"><strong>Address:</strong> </label>
+                                            </td>
+                                            <td width="90%"> <label>
+                                                </label></td>
+                                        </tr>
+                                        <tr>
+                                            <td width="15%">
+                                                <label style="width: 50%;"><strong>Phone:</strong> </label>
+                                            </td>
+                                            <td width="90%"> <label>
+                                                <?php echo $number?>
+                                                </label></td>
+                                        </tr>
+                                        <tr>
+                                            <td width="15%">
+                                                <label style="width: 50%;"><strong>Email:</strong> </label>
+                                            </td>
+                                            <td width="90%"> <label>
+                                                <?php echo $email?>
+                                                </label></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <?php
+                            }
+                            ?>
 
-                                            </label></td>
-                                    </tr>
-                                    <tr>
-                                        <td width="15%">
-                                            <label style="width: 50%;"><strong>Email:</strong> </label>
-                                        </td>
-                                        <td width="90%"> <label>
-
-                                            </label></td>
-                                    </tr>
-                                </tbody>
-                            </table>
                         </div>
                     </div>
 
@@ -359,7 +377,7 @@ function setItems()
                     <hr>
                     <div><label style="width: 50%;"><strong>Total Cost:</strong> </label><label id="Gtotal"
                             style="width: 50%;text-align: end;">P
-                            <?php echo number_format($totalDue, 2, '.', ',') ?>
+                            <?php echo number_format($totalDiscounted, 2, '.', ',') ?>
                         </label></div>
                     <div style="" id="disDIV"><label style="width: 50%;"><strong>Extended stay
                                 discount (3%):</strong> </label><label id="discount" style="width: 50%;text-align: end;">-
@@ -395,63 +413,59 @@ function setItems()
             <button type="submit" name="submit" id="submit" class="form-control btn-secondary" disabled>Submit</button>
 
         </form>
+        <script>
+            var $j = jQuery.noConflict();
+            $j(document).ready(function () {
+
+                $j("#discount").on("keyup", function (event) {
+                    if (event.key === "Enter") {
+                        voucherCheck();
+                    }
+                });
+
+                var inputElement12 = document.getElementById('cash');
+                inputElement12.addEventListener('input', function () {
+
+                    var inputElement3 = document.getElementById('cashT');
+                    var change = document.getElementById('change');
+                    var changeT = document.getElementById('changeT');
+                    var amount = document.getElementById('gt');
+                    var submit = document.getElementById('submit');
+                    if (inputElement12.value.length === 0) {
+                        change.value = "₱ 0.00";
+                        changeT.textContent = "₱ 0.00";
+                        inputElement3.textContent = "- ₱ 0.00";
+                        submit.disabled = true;
+                        return
+                    }
+                    // This function will be called when the input value changes
+                    // var inputValue = inputElement.value;
+                    // outputElement.textContent = 'Input value changed to: ' + inputValue;
+                    change.value = "₱ " + (parseFloat(inputElement12.value) - parseFloat(amount.value.replace("₱", "").replace(/\s+/g, ''))).toFixed(2);
+                    changeT.textContent = "₱ " + (parseFloat(inputElement12.value) - parseFloat(amount.value.replace("₱", "").replace(/\s+/g, ''))).toFixed(2);
+                    inputElement3.textContent = "- ₱ " + (parseFloat(inputElement12.value)).toFixed(2);
+                    if ((parseFloat(amount.value.replace("₱", "").replace(/\s+/g, '')) - parseFloat(inputElement12.value.replace("₱", "").replace(/\s+/g, ''))) > 0) {
+                        submit.disabled = true;
+                        changeT.textContent = "₱ 0.00";
+                        change.value = "- ₱ 0.00";
+                    } else {
+                        submit.disabled = false;
+                    }
+                });
+            });
+        </script>
 
         <?php
     } else {
         echo '<p>No Data</p>';
     }
     ?>
-    <script>
-        var $j = jQuery.noConflict();
-        $j(document).ready(function () {
-            $j("#tID").on("keyup", function (event) {
-                if (event.key === "Enter") {
-                    addObject();
-                }
-            });
-            $j("#discount").on("keyup", function (event) {
-                if (event.key === "Enter") {
-                    voucherCheck();
-                }
-            });
 
-            var inputElement12 = document.getElementById('cash');
-            inputElement12.addEventListener('input', function () {
-
-                var inputElement3 = document.getElementById('cashT');
-                var change = document.getElementById('change');
-                var changeT = document.getElementById('changeT');
-                var amount = document.getElementById('gt');
-                var submit = document.getElementById('submit');
-                if (inputElement12.value.length === 0) {
-                    change.value = "₱ 0.00";
-                    changeT.textContent = "₱ 0.00";
-                    inputElement3.textContent = "- ₱ 0.00";
-                    submit.disabled = true;
-                    return
-                }
-                // This function will be called when the input value changes
-                // var inputValue = inputElement.value;
-                // outputElement.textContent = 'Input value changed to: ' + inputValue;
-                change.value = "₱ " + (parseFloat(inputElement12.value) - parseFloat(amount.value.replace("₱", "").replace(/\s+/g, ''))).toFixed(2);
-                changeT.textContent = "₱ " + (parseFloat(inputElement12.value) - parseFloat(amount.value.replace("₱", "").replace(/\s+/g, ''))).toFixed(2);
-                inputElement3.textContent = "- ₱ " + (parseFloat(inputElement12.value)).toFixed(2);
-                if ((parseFloat(amount.value.replace("₱", "").replace(/\s+/g, '')) - parseFloat(inputElement12.value.replace("₱", "").replace(/\s+/g, ''))) > 0) {
-                    submit.disabled = true;
-                    changeT.textContent = "₱ 0.00";
-                    change.value = "- ₱ 0.00";
-                } else {
-                    submit.disabled = false;
-                }
-            });
-        });
-
-    </script>
     <?php
 }
 function calculatePaid($rate, $nights)
 {
-    $ret = $nights * $rate * 1.12;
+    $ret = $nights * $rate ;
     $discountRate = 0.03;
     if ($nights >= 7) {
         $ret = $ret - ($ret * $discountRate);
@@ -460,7 +474,7 @@ function calculatePaid($rate, $nights)
 }
 function calculateDiscount($rate, $nights)
 {
-    $ret = $nights * $rate * 1.12;
+    $ret = $nights * $rate ;
     $discountRate = 0.03;
     if ($nights >= 7) {
         return ($ret * $discountRate);
@@ -471,7 +485,7 @@ function calculateDiscount($rate, $nights)
 function calculateTax($rate, $nights)
 {
     $ret = $nights * $rate;
-    $tax = 0.12;
-    return ($ret * $tax);
+    $tax =  $ret -($ret/1.12);
+    return $tax;
 }
 ?>

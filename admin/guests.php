@@ -213,7 +213,7 @@ if (isset($_SESSION['user_id']) && $_SESSION['role'] === "Administrator") {
         </li>
       </ul>
     </div>
-    <section class="home-section" style="background:#dba9a9">
+    <section class="home-section" style="background:white">
       <nav>
         <div class="sidebar-button">
           <i class='bx bx-menu sidebarBtn'></i>
