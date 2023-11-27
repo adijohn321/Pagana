@@ -10,8 +10,6 @@ if (isset($_SESSION['name']) && isset($_SESSION['email']) && isset($_SESSION['ad
     $rate = $_SESSION['rate'];
     $checkin = $_SESSION['checkin'];
     $checkout = $_SESSION['checkout'];
-    $am1 = $_SESSION['am1'];
-    $am2 = $_SESSION['am2'];
     $user_id = $_SESSION['user_id'];
     $ref_no = rand(999999999, 000000000);
     $status = "Accepted";
@@ -20,16 +18,6 @@ if (isset($_SESSION['name']) && isset($_SESSION['email']) && isset($_SESSION['ad
     
     $stmt = mysqli_query($conn, "INSERT INTO `reservation` (user_id, room_id, name, email, phone, address, checkin, checkout, amount_paid, total_rate, transaction_id, status, datecreated) VALUES('$user_id', '$room', '$name', '$email', '$phone', '$address', '$checkin', '$checkout', '$rate', '$rate', '$ref_no', '$status', '$now')");
     $reservationId = mysqli_insert_id($conn);
-    if($am1 == false){
-    }
-    else if ($am1 == true){
-        $stmt1 = mysqli_query($conn, "INSERT INTO `amenities_reservation` (reservation_id, name, checkin, checkout) VALUES('$reservationId', '$am1', '$checkin', '$checkout')");
-    }
-    if($am2 == false){
-    }
-    else if ($am2 == true){
-    $stmt2 = mysqli_query($conn, "INSERT INTO `amenities_reservation` (reservation_id, name, checkin, checkout) VALUES('$reservationId', '$am2', '$checkin', '$checkout')");
-    }
     if ($stmt) {
         $logoImagePath = '../img/Pagana_logo.png';
         $logoData = base64_encode(file_get_contents($logoImagePath));

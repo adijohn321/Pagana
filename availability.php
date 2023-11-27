@@ -1,6 +1,7 @@
 <?php
 
 session_start();
+
 $year = date("Y");
 $user_id = $_SESSION['user_id'];
 if (isset($_GET["id"])) {
@@ -41,7 +42,7 @@ $sn = 0;
 if ($row = $result->fetch_assoc()) {
   $sn++;
 
-  $fullname = $row["fname"].' '.$row["mname"].' '.$row["lname"];
+  $fullname = $row["fname"] . ' ' . $row["mname"] . ' ' . $row["lname"];
   $email = $row['email'];
   $number = $row['phone'];
 }
@@ -49,25 +50,161 @@ $stmt->close();
 
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-  $dateS = new DateTime($_POST['date1']);
-  $dateE = new DateTime($_POST['date2']);
-  if ($dateS < ($dateE)) {
+  if (isset($_GET['reservation_id'])) {
+    echo '<h1>Hello</h1>';
 
-    //proceed save to database
-    $rate = ($dateS->diff($dateE)->format('%a')) * $roomRate;
-    $email = $_POST['email'];
-    $number = $_POST['number'];
-    $dateE = $dateE->format('y-m-d');
-    $dateS = $dateS->format('y-m-d');
-    $ref_no = rand(999999999, 000000000);
+    $stmt = $conn->prepare("SELECT * FROM reservation WHERE reservation_id = '$reservation'");
+    $stmt->execute();
+    $result = $stmt->get_result();
 
-    $stmt = mysqli_query($conn, "INSERT INTO `reservation` (user_id,room_id, name, email, phone, address, checkin, checkout, amount_paid, total_rate, transaction_id, status, datecreated)
+    $sn = 0;
+    if ($row = $result->fetch_assoc()) {
+      $sn++;
+
+      $fullname = $row["fname"] . ' ' . $row["mname"] . ' ' . $row["lname"];
+      $email = $row['email'];
+      $number = $row['phone'];
+    }
+    $stmt->close();
+  } else {
+    if (isset($_GET['action'])) {
+
+    } else {
+      if (isset($_POST['walkin'])) {
+        $dateS = new DateTime($_POST['date1']);
+        $dateE = new DateTime($_POST['date2']);
+        if ($dateS < ($dateE)) {
+
+          //proceed save to database
+          $rate = ($dateS->diff($dateE)->format('%a')) * $roomRate;
+          $email = $_POST['email'];
+          $number = $_POST['number'];
+          $dateE = $dateE->format('y-m-d');
+          $dateS = $dateS->format('y-m-d');
+          $ref_no = rand(999999999, 000000000);
+
+          $stmt = mysqli_query($conn, "INSERT INTO `reservation` (user_id,room_id, name, email, phone, address, checkin, checkout, amount_paid, total_rate, transaction_id, status, datecreated)
          VALUES('$user_id','$roomName', '$fullname', '$email', '$number', '', '$dateS', '$dateE', '0.00', '$rate', '$ref_no', 'Pending', current_date())");
 
+          if ($stmt) {
+            $logoImagePath = 'img/Pagana_logo.png';
+            $logoData = base64_encode(file_get_contents($logoImagePath));
+            $logoSrc = 'data:image/png;base64,' . $logoData;
 
-    $_SESSION['success'] = 'Your reservation request has been sent. ' ;
-  } else {
-    $_SESSION['error'] = 'dates are not the same.';
+            $subject = "Your Reservation";
+            $message = '<html>
+              <head>
+              <title>Your Reservation</title>
+              <style>
+                  body {
+                  font-family: Arial, sans-serif;
+                  background-color: #f5f5f5;
+                  }
+                  .container {
+                  max-width: 600px;
+                  margin: 0 auto;
+                  padding: 20px;
+                  background-color: #fff;
+                  border: 1px solid #ddd;
+                  border-radius: 4px;
+                  }
+                  .logo {
+                  text-align: center;
+                  margin-bottom: 20px;
+                  }
+                  .logo img {
+                  max-width: 200px;
+                  }
+                  h1 {
+                  color: #333333;
+                  }
+                  ul {
+                  list-style-type: none;
+                  padding: 0;
+                  }
+                  li {
+                  margin-bottom: 10px;
+                  }
+              </style>
+              </head>
+              <body>
+              <div class="container">
+                  <div class="logo">
+                  <h1>Pagana Kutawato</h1>
+                  </div>
+                  <h1>Your Reservation</h1>
+                  <p>Your Reservation has been accepted. Thank you for choosing our hotel.</p>
+                  <p>Here are your reservation details:</p>
+                  <ul>
+                  <li>Transaction ID: ' . $ref_no . '</li>
+                  <li>Name: ' . $nafullnameme . '</li>
+                  <li>Email: ' . $email . '</li>
+                  <li>Check-in Date: ' . $checkin . '</li>
+                  <li>Check-out Date: ' . $checkout . '</li>
+                  <!-- Add more reservation details as needed -->
+                  </ul>
+                  <p>We look forward to seeing you soon.</p>
+              </div>
+              </body>
+              </html>';
+
+            // Set the content-type header for the email as HTML
+            $headers = "MIME-Version: 1.0" . "\r\n";
+            $headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
+
+            // Add the sender information
+            $headers .= "From: Pagana Kutawato" . "\r\n";
+
+            // Send the email
+            mail($email, $subject, $message, $headers);
+
+            $_SESSION['success'] = 'Your reservation request has been sent. ';
+
+            header("Location: index.php");
+          }
+        } else {
+
+          $_SESSION['error'] = 'dates are not the same.';
+        }
+      } else {
+
+        $dateS = new DateTime($_POST['date1']);
+        $dateE = new DateTime($_POST['date2']);
+        
+        $rate = ($dateS->diff($dateE)->format('%a')) * $roomRate;
+        require_once 'config.php';
+        $_SESSION['name'] = $fullname;
+        $_SESSION['email'] = $_POST['email'];
+        $_SESSION['phone'] = $_POST['number'];
+        $_SESSION['address'] ='';
+        $_SESSION['room'] = $roomName;
+        $_SESSION['rate'] = $rate;
+        $_SESSION['checkin'] = $_POST['date1'];
+        $_SESSION['checkout'] = $_POST['date2'];
+        $_SESSION['user_id'] = $user_id;
+
+        try {
+          $response = $gateway->purchase(
+            array(
+              'amount' => $_SESSION['rate'],
+              'currency' => PAYPAL_CURRENCY,
+              'returnUrl' => PAYPAL_RETURN_URL,
+              'cancelUrl' => PAYPAL_CANCEL_URL,
+            )
+          )->send();
+
+          if ($response->isRedirect()) {
+            $response->redirect(); // This will automatically forward the customer
+          } else {
+            // Not successful
+            echo $response->getMessage();
+          }
+        } catch (Exception $e) {
+          echo $e->getMessage();
+        }
+      }
+
+    }
   }
 }
 
@@ -87,7 +224,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <!-- Google Web Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600&family=Inter:wght@700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600&family=Inter:wght@700;800&display=swap"
+    rel="stylesheet">
 
   <!-- Icon Font Stylesheet -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
@@ -242,13 +380,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <a href="contact.php" class="nav-item nav-link">Contact</a>
         <?php
         if (!isset($_SESSION['user_id']) && !isset($_SESSION['role'])) {
-        ?>
-          <a href="login.php" class="btn btn-success rounded-0 py-4 px-lg-5">Login<i class="fa fa-arrow-right ms-3"></i></a>
-        <?php
+          ?>
+          <a href="login.php" class="btn btn-success rounded-0 py-4 px-lg-5">Login<i
+              class="fa fa-arrow-right ms-3"></i></a>
+          <?php
         } else {
-        ?>
+          ?>
           <div class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown"
+              aria-expanded="false">
               Account
             </a>
             <ul class="dropdown-menu" aria-labelledby="userDropdown">
@@ -260,7 +400,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
               <li><a class="dropdown-item" href="function/logout.php">Logout</a></li>
             </ul>
           </div>
-        <?php
+          <?php
         }
         ?>
       </div>
@@ -271,14 +411,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <div class="container mt-4">
 
     <?php if (isset($_SESSION['success'])) { ?>
-      <div class="alert alert-success"><?php echo $_SESSION['success']; ?></div>
-    <?php
+      <div class="alert alert-success">
+        <?php echo $_SESSION['success']; ?>
+      </div>
+      <?php
       unset($_SESSION['success']);
     }
     ?>
     <?php if (isset($_SESSION['error'])) { ?>
-      <div class="alert alert-danger"><?php echo $_SESSION['error']; ?></div>
-    <?php
+      <div class="alert alert-danger">
+        <?php echo $_SESSION['error']; ?>
+      </div>
+      <?php
       unset($_SESSION['error']);
     }
     ?>
@@ -299,9 +443,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           // }
           ?>
           <div class="card-body">
-            <h5 class="card-title"><?php echo $roomName ?></h5>
-            <p class="card-text">Description: <?php echo ($roomDescription); ?></p>
-            <p>Starting from <strong> ₱<?php echo number_format((float)$roomRate, 2, '.', ''); ?></strong> per night (taxes and fees not included). Special rates available for extended stays.</p>
+            <h5 class="card-title">
+              <?php echo $roomName ?>
+            </h5>
+            <p class="card-text">Description:
+              <?php echo ($roomDescription); ?>
+            </p>
+            <p>Starting from <strong> ₱
+                <?php echo number_format((float) $roomRate, 2, '.', ''); ?>
+              </strong> per night (taxes and fees not included). Special rates available for extended stays.</p>
             <?php
             // if ($select_arr[$fetch['name']]['status'] == 0) {
             //     echo '<a href="#" class="btn btn-primary">Reserve</a>';
@@ -321,11 +471,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             while ($row = $result->fetch_assoc()) {
               $name = $row["description"];
 
-            ?>
+              ?>
               <li class="list-group-item">
-                <i class="fas fa-check"></i> <?php echo $name ?>
+                <i class="fas fa-check"></i>
+                <?php echo $name ?>
               </li>
-            <?php
+              <?php
               $i++;
             }
             if ($i == 0) {
@@ -348,11 +499,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             while ($row = $result->fetch_assoc()) {
               $name = $row["description"];
 
-            ?>
+              ?>
               <li class="list-group-item">
-                <i class="fas fa-check"></i> <?php echo $name ?>
+                <i class="fas fa-check"></i>
+                <?php echo $name ?>
               </li>
-            <?php
+              <?php
               $i++;
             }
             if ($i == 0) {
@@ -390,7 +542,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           $sn = 0;
           while ($row = $result->fetch_assoc()) {
 
-            if ((date_diff($endDate, new DateTime($row["checkin"]))->format('%R%a') >=   1)) {
+            if ((date_diff($endDate, new DateTime($row["checkin"]))->format('%R%a') >= 1)) {
               $indicatorClass = '';
 
               $startDate = $endDate;
@@ -402,15 +554,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
               echo '<p>' . $startDate->format('M d, Y') . ' - ' . $endDate->format('M d, Y') . ' (' . $duration . ')</p>';
 
               echo '</div>';
-          ?>
+              ?>
               <div class="col-md-3">
-                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#loginModal" onclick="changeInputText('<?php echo $startDate->format('Y-m-d'); ?>','<?php echo $endDate->format('Y-m-d'); ?>')" style="margin-top:8px">
+                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#loginModal"
+                  onclick="changeInputText('<?php echo $startDate->format('Y-m-d'); ?>','<?php echo $endDate->format('Y-m-d'); ?>')"
+                  style="margin-top:8px">
                   Reserve
                 </button>
               </div>
-            <?php
+              <?php
               //echo '<a href=">" class="btn btn-primary">Reserve</a>';
-
+          
               echo '</div>';
             }
 
@@ -436,7 +590,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             ?>
             <!-- Add components here -->
-          <?php
+            <?php
           }
           $stmt->close();
           $conn->close();
@@ -444,10 +598,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           <div class="timeline-event" style="display:flex">
             <div class="timeline-content col-md-9">
               <p> Available </p>
-              <p><?php echo $endDate->format('M d,Y') ?> - Onward</p>
+              <p>
+                <?php echo $endDate->format('M d,Y') ?> - Onward
+              </p>
             </div>
             <div class="col-md-3">
-              <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#loginModal" onclick="changeInputText('<?php echo $endDate->format('Y-m-d'); ?>','<?php echo '2033-12-31'; ?>')" style="margin-top:8px">
+              <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#loginModal"
+                onclick="changeInputText('<?php echo $endDate->format('Y-m-d'); ?>','<?php echo '2033-12-31'; ?>')"
+                style="margin-top:8px">
                 Reserve
               </button>
             </div>
@@ -467,7 +625,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 
   <!-- Start Modal -->
-  <div class="modal fade" id="loginModal" tabindex="-1" role="dialog" aria-labelledby="loginModalLabel" aria-hidden="true">
+  <div class="modal fade" id="loginModal" tabindex="-1" role="dialog" aria-labelledby="loginModalLabel"
+    aria-hidden="true">
     <div class="modal-dialog" role="document" style="max-width:900px;width:900px">
       <div class="modal-content">
         <div class="modal-header">
@@ -482,7 +641,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           <main class="main-content" style="    width: -webkit-fill-available;">
             <div class="container mt-4">
               <form action="" method="post" enctype="multipart/form-data" style="display:block;margin-bottom:10px">
-                
+
 
                 <div class="row" hidden>
                   <div class="col-md-6">
@@ -490,7 +649,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="form-group">
                       <label for="number">Mobile Number</label>
 
-                      <input type="number" class="form-control" id="number" name="number" max_length="13" required value="<?php echo $number?>">
+                      <input type="number" class="form-control" id="number" name="number" max_length="13" required
+                        value="<?php echo $number ?>">
                     </div>
                   </div>
                   <div class="col-md-6">
@@ -498,7 +658,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="form-group">
                       <label for="email">Email</label>
 
-                      <input type="email" class="form-control" id="email" max_length="50" required name="email" value="<?php echo $email?>">
+                      <input type="email" class="form-control" id="email" max_length="50" required name="email"
+                        value="<?php echo $email ?>">
                     </div>
                   </div>
 
@@ -536,8 +697,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <h5 class="alert-heading">Important Information</h5>
                     <p><strong>Check-in Time:</strong> 3:00 PM</p>
                     <p><strong>Check-out Time:</strong> 11:00 AM</p>
-                    <p class="mb-0">Please note that early check-ins and late check-outs may be available upon request, subject to availability, and additional charges.</p>
-                    <p class="mb-0">Please note that you have to pay the amount to insure this reservation and that your reservation may be cancelled by both party.</p>
+                    <p class="mb-0">Please note that early check-ins and late check-outs may be available upon request,
+                      subject to availability, and additional charges.</p>
+                    <p class="mb-0">Please note that you have to pay the amount to insure this reservation and that your
+                      reservation may be cancelled by both party.</p>
                   </div>
                 </div>
 
@@ -545,15 +708,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="container mt-5">
                   <div class="alert alert-info">
                     <h5 class="alert-heading">Payment Summary</h5>
-                    <div><label style="width: 50%;"><strong>Rate:</strong> </label><label id="roomRate" style="width: 50%;text-align: end;">500.00</label></div>
-                    <div><label style="width: 50%;"><strong>No. of nights:</strong> </label><label id="night" style="width: 50%;text-align: end;">x 5</label></div>
+                    <div><label style="width: 50%;"><strong>Rate:</strong> </label><label id="roomRate"
+                        style="width: 50%;text-align: end;">500.00</label></div>
+                    <div><label style="width: 50%;"><strong>No. of nights:</strong> </label><label id="night"
+                        style="width: 50%;text-align: end;">x 5</label></div>
                     <hr>
-                    <div><label style="width: 50%;"><strong>Total Cost:</strong> </label><label id="total" style="width: 50%;text-align: end;">2500.00</label></div>
-                    <div style="display: none;" id="disDIV"><label style="width: 50%;"><strong>Extended stay discount (3%):</strong> </label><label id="discount" style="width: 50%;text-align: end;">2500.00</label></div>
-                    <div><label style="width: 50%;"><strong>Tax (12%):</strong> </label><label id="tax" style="width: 50%;text-align: end;">+ 300.00</label></div>
+                    <div><label style="width: 50%;"><strong>Total Cost:</strong> </label><label id="total"
+                        style="width: 50%;text-align: end;">2500.00</label></div>
+                    <div style="display: none;" id="disDIV"><label style="width: 50%;"><strong>Extended stay discount
+                          (3%):</strong> </label><label id="discount"
+                        style="width: 50%;text-align: end;">2500.00</label></div>
+                    <div><label style="width: 50%;"><strong>Tax (12%):</strong> </label><label id="tax"
+                        style="width: 50%;text-align: end;">+ 300.00</label></div>
                     <hr>
 
-                    <div><label style="width: 50%;"><strong>Grand total:</strong> </label><label id="gt" style="width: 50%;text-align: end;">2800.00</label></div>
+                    <div><label style="width: 50%;"><strong>Grand total:</strong> </label><label id="gt"
+                        style="width: 50%;text-align: end;">2800.00</label></div>
                     <p class="mb-0">NOTE: You can use your discount voucher in Check-out</p>
                   </div>
                 </div>
@@ -562,9 +732,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 
                 <div style="text-align:center">
-                  <button type="submit" class="btn" style="color: #fff;background-color: #0d6efd;border-color: #0d6efd;border-radius:5px;width:300px">Reserve</button>
+                  <button type="submit" name="walkin" class="btn"
+                    style="color: #fff;background-color: #0d6efd;border-color: #0d6efd;border-radius:5px;width:300px">Reserve</button>
 
-                  <button type="submit" class="btn" style="color: #fff;background-color: #0d6efd;border-color: #0d6efd;border-radius:5px;width:300px"><i class="fa fa-credit-card"></i> Book Now</button>
+                  <button type="submit" name="book" class="btn"
+                    style="color: #fff;background-color: #0d6efd;border-color: #0d6efd;border-radius:5px;width:300px"><i
+                      class="fa fa-credit-card"></i> Book Now</button>
                 </div>
                 <div style="text-align:center">
                 </div>
@@ -598,11 +771,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
         <div class="col-lg-4 col-md-6">
           <h5 class="text-white mb-4">Contact</h5>
-          <p class="mb-2"><i class="fa fa-map-marker-alt me-3"></i>Rufo Mañara St., RH XI, Cotabato City, near Grecco Gas. Station.</p>
+          <p class="mb-2"><i class="fa fa-map-marker-alt me-3"></i>Rufo Mañara St., RH XI, Cotabato City, near Grecco
+            Gas. Station.</p>
           <p class="mb-2"><i class="fa fa-phone-alt me-3"></i>(064) 552 0592</p>
           <p class="mb-2"><i class="fa fa-envelope me-3"></i>paganakutawato@gmail.com</p>
           <div class="d-flex pt-2">
-            <a class="btn btn-outline-light btn-social" href="https://www.facebook.com/paganakutawatonativerestaurant"><i class="fab fa-facebook-f"></i></a>
+            <a class="btn btn-outline-light btn-social"
+              href="https://www.facebook.com/paganakutawatonativerestaurant"><i class="fab fa-facebook-f"></i></a>
           </div>
         </div>
       </div>
@@ -636,7 +811,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     const checkinDateInput = document.getElementById('date2');
     const checkoutDateInput = document.getElementById('date1');
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
       // Get references to your date inputs
 
       // Add event listeners to date inputs
@@ -662,11 +837,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       // Calculate the number of nights
       const oneDay = 24 * 60 * 60 * 1000; // hours * minutes * seconds * milliseconds
       const nights = Math.round(Math.abs((checkinDate - checkoutDate) / oneDay));
-      if(nights>=7){
+      if (nights >= 7) {
         discountRate = 0.03;
         element.style.display = "block";
       }
-      else{
+      else {
         discountRate = 0.0;
         element.style.display = "none";
       }
@@ -675,7 +850,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       const totalAmount = pricePerNight * nights;
       const taxAmount = totalAmount * taxRate;
       const discountAmount = totalAmount * discountRate;
-      const grandTotal = totalAmount + taxAmount-discountAmount;
+      const grandTotal = totalAmount + taxAmount - discountAmount;
 
       // Display the payment information
       document.getElementById('roomRate').textContent = '₱ ' + pricePerNight.toFixed(2);
